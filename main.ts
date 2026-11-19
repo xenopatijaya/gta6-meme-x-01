@@ -1,0 +1,30 @@
+// Entry for make.fun's "Post a GTA 6 meme on X" bounty (program/v1, Node 22,
+// standard library only).
+//
+// The entry is the X post itself: a GTA 6 meme (meme.png in this repository)
+// posted from a public account, carrying make.fun and/or a tag of @makefunai
+// plus the entrant's play code. POST.json at the repository root names the
+// post's address; this program copies it to /output/POST.json, where the
+// house reads it, fetches the post from X, and hands its first picture and
+// its text to the judge. Nothing this program writes about the post is
+// judged, so the copy is all it does.
+//
+// Run it the way the grader does:
+//   mkdir -p out && MAKEFUN_BOT_DIR=. MAKEFUN_OUTPUT_DIR=out node main.ts
+//
+// POST.json holds a placeholder until the meme is posted; replace it with
+// the post's address (https://x.com/<handle>/status/<id>) before submitting.
+
+import { copyFileSync, mkdirSync } from 'node:fs';
+import { join } from 'node:path';
+
+const BOT_DIR = process.env.MAKEFUN_BOT_DIR ?? '/bot';
+const OUTPUT_DIR = process.env.MAKEFUN_OUTPUT_DIR ?? '/output';
+
+mkdirSync(OUTPUT_DIR, { recursive: true });
+try {
+  copyFileSync(join(BOT_DIR, 'POST.json'), join(OUTPUT_DIR, 'POST.json'));
+} catch (err) {
+  console.error(`POST.json could not be copied from ${BOT_DIR}: ${(err as Error).message}`);
+  process.exit(1);
+}
