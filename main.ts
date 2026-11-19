@@ -22,9 +22,27 @@ const BOT_DIR = process.env.MAKEFUN_BOT_DIR ?? '/bot';
 const OUTPUT_DIR = process.env.MAKEFUN_OUTPUT_DIR ?? '/output';
 
 mkdirSync(OUTPUT_DIR, { recursive: true });
+const outPath = join(OUTPUT_DIR, 'POST.json');
 try {
-  copyFileSync(join(BOT_DIR, 'POST.json'), join(OUTPUT_DIR, 'POST.json'));
+  copyFileSync(join(BOT_DIR, 'POST.json'), outPath);
 } catch (err) {
   console.error(`POST.json could not be copied from ${BOT_DIR}: ${(err as Error).message}`);
   process.exit(1);
 }
+
+// Fail loudly instead of handing the house a placeholder: POST.json must
+// name a real post address, so the entry is refused here, where it can be
+// fixed, rather than by the site's entry_link check after submission.
+import { readFileSync } from 'node:fs';
+let post;
+try {
+  post = JSON.parse(readFileSync(outPath, 'utf8'));
+} catch (err) {
+  console.error(`POST.json is not valid JSON: ${(err as Error).message}`);
+  process.exit(1);
+}
+if (typeof post?.url !== 'string' || !/^https:\/\/(x\.com|twitter\.com)\/\S+\/status\/\d+/.test(post.url)) {
+  console.error('POST.json must carry a url of the form https://x.com/<handle>/status/<id>');
+  process.exit(1);
+}
+console.log(`POST.json ready: ${post.url}`);
